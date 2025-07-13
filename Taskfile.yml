@@ -1,0 +1,20 @@
+version: "3"
+
+tasks:
+  default:
+    desc: List all available tasks.
+    cmds:
+      - cmd: task --list-all
+        silent: true
+
+  lint:
+    desc: Run linters.
+    cmds:
+      - cmd: golangci-lint run
+        silent: true
+
+  test:
+    desc: Run tests.
+    cmds:
+      - cmd: go test ./...
+        silent: true

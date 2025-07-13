@@ -1,0 +1,19 @@
+version: "2"
+
+formatters:
+  enable:
+    - goimports
+    - golines
+
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/PhilippReinke/tcp-to-http
+
+    golines:
+      max-len: 80
+
+linters:
+  default: standard
+  enable:
+    - godox
