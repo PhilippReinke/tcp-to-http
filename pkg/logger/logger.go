@@ -42,7 +42,7 @@ func (l *Logger) WithField(field string, val any) *Logger {
 }
 
 func (l *Logger) WithError(err error) *Logger {
-	return l.WithField("remote_addr", err.Error())
+	return l.WithField("err", err.Error())
 }
 
 func (l *Logger) WithConnection(conn net.Conn) *Logger {

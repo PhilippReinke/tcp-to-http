@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/PhilippReinke/tcp-to-http/pkg/logger"
 )
@@ -16,32 +17,53 @@ var (
 
 type Manager struct {
 	logger              *logger.Logger
-	conns               map[net.Conn]struct{}
+	conns               map[net.Conn]ConnectionInfo
 	allowNewConnections bool
+}
+
+type ConnectionInfo struct {
+	SendToProtocol chan []byte
 }
 
 // NewManager creates new connection manager.
 func NewManager(logger *logger.Logger) *Manager {
 	return &Manager{
 		logger:              logger,
-		conns:               make(map[net.Conn]struct{}),
+		conns:               make(map[net.Conn]ConnectionInfo),
 		allowNewConnections: true,
 	}
 }
 
 // Register registers a new connection.
-func (c *Manager) Register(conn net.Conn) error {
+func (c *Manager) Register(conn net.Conn) (ConnectionInfo, error) {
 	if !c.allowNewConnections {
-		return ErrNoNewConnections
+		return ConnectionInfo{}, ErrNoNewConnections
 	}
 
 	_, ok := c.conns[conn]
 	if ok {
-		return ErrAlreadyRegisterd
+		return ConnectionInfo{}, ErrAlreadyRegisterd
 	}
-	c.conns[conn] = struct{}{}
+	connectionInfo := ConnectionInfo{
+		SendToProtocol: make(chan []byte),
+	}
+	c.conns[conn] = connectionInfo
 
-	return nil
+	return connectionInfo, nil
+}
+
+// Broadcast a message to all known connections.
+func (c *Manager) Broadcast(data []byte) {
+	for conn, connInfo := range c.conns {
+		go func(ch chan []byte) {
+			select {
+			case ch <- data:
+			case <-time.After(2 * time.Second):
+				// after 2 seconds the message is dropped
+				c.logger.WithConnection(conn).Error("Broadcast timeout.")
+			}
+		}(connInfo.SendToProtocol)
+	}
 }
 
 // CloseConnection closes a connection.
@@ -51,7 +73,9 @@ func (c *Manager) CloseConnection(conn net.Conn) error {
 		return ErrNotFound
 	}
 
-	return conn.Close()
+	err := conn.Close()
+	delete(c.conns, conn)
+	return err
 }
 
 // Close will attempt to close all connections.
@@ -62,6 +86,8 @@ func (c *Manager) Close() error {
 	for conn := range c.conns {
 		wg.Add(1)
 		go func() {
+			defer wg.Done()
+
 			if err := c.CloseConnection(conn); err != nil {
 				c.logger.WithError(err).Error("Failed to close connection.")
 				return

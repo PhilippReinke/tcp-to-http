@@ -46,18 +46,35 @@ func (s *Server) Serve() error {
 			continue
 		}
 
+		broadcastQueue := make(chan []byte, 1000)
 		go func() {
-			if err := s.connManager.Register(conn); err != nil {
+			for data := range broadcastQueue {
+				s.connManager.Broadcast(data)
+			}
+		}()
+
+		go func() {
+			defer func() {
+				if err := s.connManager.CloseConnection(conn); err != nil {
+					s.logger.WithError(err).Error("Failed to close connection.")
+				}
+			}()
+
+			connectionInfo, err := s.connManager.Register(conn)
+			if err != nil {
 				s.logger.WithConnection(conn).WithError(err).
 					Error("Failed to register connection.")
+				return
 			}
 
-			if err := s.protocol.HandleConnection(conn); err != nil {
+			broadcaster := protocol.Broadcaster{
+				Receive: broadcastQueue,
+				Send:    connectionInfo.SendToProtocol,
+			}
+
+			if err := s.protocol.HandleConnection(conn, broadcaster); err != nil {
 				s.logger.WithError(err).Error("Failed to handle connection.")
-			}
-
-			if err := s.connManager.CloseConnection(conn); err != nil {
-				s.logger.WithError(err).Error("Failed to close connection.")
+				return
 			}
 		}()
 	}

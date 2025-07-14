@@ -11,7 +11,10 @@ type EchoProtocol struct{}
 
 var _ Protocol = (*EchoProtocol)(nil)
 
-func (e EchoProtocol) HandleConnection(conn net.Conn) error {
+func (e EchoProtocol) HandleConnection(
+	conn net.Conn,
+	broadcaster Broadcaster,
+) error {
 	reader := bufio.NewReader(conn)
 
 	welcome := "Echo server ready. Send me a message!\n"
