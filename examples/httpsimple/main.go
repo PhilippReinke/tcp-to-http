@@ -24,7 +24,7 @@ func main() {
 		*host, *port,
 		appLogger,
 		connManager,
-		Echo{},
+		HTTPSimple{},
 	)
 	if err != nil {
 		appLogger.WithError(err).Error("Failed to create server.")

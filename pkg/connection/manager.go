@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	ErrNotFound         = errors.New("connection not found")
-	ErrAlreadyRegisterd = errors.New("connection already registered")
-	ErrNoNewConnections = errors.New("no new connections are permitted")
+	ErrNotFound          = errors.New("connection not found")
+	ErrAlreadyRegistered = errors.New("connection already registered")
+	ErrNoNewConnections  = errors.New("no new connections are permitted")
 )
 
 type Manager struct {
@@ -42,7 +42,7 @@ func (c *Manager) Register(conn net.Conn) (ConnectionInfo, error) {
 
 	_, ok := c.conns[conn]
 	if ok {
-		return ConnectionInfo{}, ErrAlreadyRegisterd
+		return ConnectionInfo{}, ErrAlreadyRegistered
 	}
 	connectionInfo := ConnectionInfo{
 		SendToProtocol: make(chan []byte),

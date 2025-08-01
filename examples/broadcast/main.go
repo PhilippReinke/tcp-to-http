@@ -6,7 +6,6 @@ import (
 
 	"github.com/PhilippReinke/tcp-to-http/pkg/connection"
 	"github.com/PhilippReinke/tcp-to-http/pkg/logger"
-	"github.com/PhilippReinke/tcp-to-http/pkg/protocol"
 	"github.com/PhilippReinke/tcp-to-http/pkg/server"
 )
 
@@ -25,13 +24,16 @@ func main() {
 		*host, *port,
 		appLogger,
 		connManager,
-		protocol.BroadcastEchoProtocol{},
+		Broadcast{},
 	)
 	if err != nil {
 		appLogger.WithError(err).Error("Failed to create server.")
 		os.Exit(1)
 	}
-	appLogger.Info("Created server.")
+	appLogger.
+		WithField("host", *host).
+		WithField("port", *port).
+		Info("Created server.")
 
 	if err := srv.Serve(); err != nil {
 		appLogger.WithError(err).Error("Failed to serve.")

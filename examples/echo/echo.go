@@ -1,19 +1,21 @@
-package protocol
+package main
 
 import (
 	"bufio"
 	"fmt"
 	"io"
 	"net"
+
+	"github.com/PhilippReinke/tcp-to-http/pkg/protocol"
 )
 
-type EchoProtocol struct{}
+type Echo struct{}
 
-var _ Protocol = (*EchoProtocol)(nil)
+var _ protocol.Protocol = (*Echo)(nil)
 
-func (e EchoProtocol) HandleConnection(
+func (Echo) HandleConnection(
 	conn net.Conn,
-	broadcaster Broadcaster,
+	_ protocol.Broadcaster,
 ) error {
 	reader := bufio.NewReader(conn)
 

@@ -1,29 +1,36 @@
 # Examples
 
-## broadcastecho
+All commands are supposed to be executed from root of this repository.
 
-A TCP server is started that runs a read loop and broadcasts all incomming
-messages.
+## broadcast
+
+Incoming messages are broadcasted to all active clients.
 
 ```sh
-go run ./examples/echo --host localhost --port 8080
+go run ./examples/broadcast --host localhost --port 8080
 
-# open clients with
+# open client with
 nc localhost 8080
 ```
 
 ## chat
 
-ChatProtocol
+*TODO*
 
 ## echo
 
-A TCP server is started that runs a read loop and echos all incomming messages.
+Incoming messages are echoed.
 
 ```sh
 go run ./examples/echo --host localhost --port 8080
 ```
 
-## http
+## http simple
 
-HTTP Protocol
+Getting started with HTTP/1.1 🚀. Check out the [intro](httpsimple/).
+
+Any request is responded with 200 status code and a simple body.
+
+```sh
+go run ./examples/httpsimple --host localhost --port 8080
+```

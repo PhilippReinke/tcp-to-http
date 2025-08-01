@@ -1,3 +1,3 @@
 package graceful
 
-// TODO: later
+// I might implement this later.

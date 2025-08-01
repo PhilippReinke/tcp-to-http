@@ -1,23 +1,25 @@
-package protocol
+package main
 
 import (
 	"bufio"
 	"fmt"
 	"io"
 	"net"
+
+	"github.com/PhilippReinke/tcp-to-http/pkg/protocol"
 )
 
-type BroadcastEchoProtocol struct{}
+type Broadcast struct{}
 
-var _ Protocol = (*BroadcastEchoProtocol)(nil)
+var _ protocol.Protocol = (*Broadcast)(nil)
 
-func (e BroadcastEchoProtocol) HandleConnection(
+func (Broadcast) HandleConnection(
 	conn net.Conn,
-	broadcaster Broadcaster,
+	broadcaster protocol.Broadcaster,
 ) error {
 	reader := bufio.NewReader(conn)
 
-	welcome := "Broadcast echo server ready. Send me a message!\n"
+	welcome := "Broadcast server ready. Send me a message!\n"
 	if _, err := conn.Write([]byte(welcome)); err != nil {
 		return err
 	}
@@ -48,6 +50,6 @@ func (e BroadcastEchoProtocol) HandleConnection(
 			return fmt.Errorf("read message: %w", err)
 		}
 
-		broadcaster.Receive <- []byte("Broadcast Echo: " + message)
+		broadcaster.Receive <- []byte("Broadcast: " + message)
 	}
 }
