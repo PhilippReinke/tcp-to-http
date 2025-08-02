@@ -10,6 +10,7 @@ type Request struct {
 	Method  string
 	Path    string
 	Headers map[string]string
+	Body    []byte
 }
 
 type Response struct {
@@ -20,16 +21,14 @@ type Response struct {
 
 func readRequest(reader *bufio.Reader) (*Request, error) {
 	// read request line, e.g., "GET / HTTP/1.1"
-	statusLine, err := readStatusLine(reader)
+	line, err := readLine(reader)
 	if err != nil {
 		return nil, fmt.Errorf("read status line: %w", err)
 	}
-
-	// parse status line
 	var method, path, httpVersion string
-	_, err = fmt.Sscanf(statusLine, "%s %s %s", &method, &path, &httpVersion)
+	_, err = fmt.Sscanf(line, "%s %s %s", &method, &path, &httpVersion)
 	if err != nil {
-		return nil, fmt.Errorf("parse status line: %w", err)
+		return nil, fmt.Errorf("parse request line: %w", err)
 	}
 
 	// read headers
@@ -42,25 +41,28 @@ func readRequest(reader *bufio.Reader) (*Request, error) {
 		Method:  method,
 		Path:    path,
 		Headers: headers,
+		Body:    []byte{},
 	}, nil
 }
 
-func readStatusLine(reader *bufio.Reader) (string, error) {
+func readLine(reader *bufio.Reader) (string, error) {
 	line, err := reader.ReadString('\n')
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("read line: %w", err)
 	}
+
+	// Note that TrimSpace removes '\r' as well.
 	return strings.TrimSpace(line), nil
 }
 
 func readHeaders(reader *bufio.Reader) (map[string]string, error) {
 	headers := make(map[string]string)
 	for {
-		line, err := reader.ReadString('\n')
+		line, err := readLine(reader)
 		if err != nil {
 			return nil, err
 		}
-		line = strings.TrimSpace(line)
+		line = string(line)
 		if line == "" {
 			// end of header
 			break
@@ -72,6 +74,7 @@ func readHeaders(reader *bufio.Reader) (map[string]string, error) {
 		}
 		headers[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
 	}
+
 	return headers, nil
 }
 

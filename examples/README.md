@@ -15,7 +15,14 @@ nc localhost 8080
 
 ## chat
 
-*TODO*
+A TCP-based chat is started. For more check [here](chat/).
+
+```sh
+go run ./examples/chat --host localhost --port 8080
+
+# open client with
+nc localhost 8080
+```
 
 ## echo
 
